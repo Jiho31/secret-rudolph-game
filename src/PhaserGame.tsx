@@ -20,8 +20,9 @@ interface IProps {
 export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(
   function PhaserGame({ currentActiveScene }, ref) {
     const game = useRef<Phaser.Game | null>(null!);
-
-    const [items, setItems] = useState([]);
+    const friendName = "Jiho";
+    const [likedItems, setLikedItems] = useState([]);
+    const [dislikedItems, setDislikedItems] = useState([]);
 
     useLayoutEffect(() => {
       if (game.current === null) {
@@ -61,8 +62,13 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(
       });
 
       game.current.events.on("update-itemList", (data) => {
-        console.log(data);
-        setItems(data);
+        // console.log(data);
+        setLikedItems(data);
+      });
+
+      game.current.events.on("update-dislikes", (data) => {
+        // console.log(data);
+        setDislikedItems(data);
       });
 
       game.current.events.on("game-over", (data) => {
@@ -77,8 +83,10 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(
 
     return (
       <div>
+        <p>Let's find out what {friendName} wants for Christmas!</p>
+        <div>💚 Likes: {likedItems.join(",")}</div>
+        <div>💔 Dislikes: {dislikedItems.join(",")}</div>
         <div id="game-container"></div>
-        <div>{items.join(",")}</div>
       </div>
     );
   }
