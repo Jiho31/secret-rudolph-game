@@ -1,5 +1,6 @@
 // import { AUTO, Game } from "phaser";
 import Phaser, { Game } from "phaser";
+import { items, itemKeys } from "./items.js";
 
 // const GAME_PLAY_TIME = 30000; // 30 seconds
 const GAME_PLAY_TIME = 20000;
@@ -17,10 +18,8 @@ let background;
 let leftKey;
 let rightKey;
 
-// let infoContainer;
 let score = 0;
 let scoreText;
-// let axisInfo;
 
 let remainingTimeText;
 let gameTimer;
@@ -89,7 +88,6 @@ function spwanBomb(x) {
 function handleGameOver() {
   player.stop();
   gameTimer.destroy();
-  console.log(this.scene, "#####SCENE");
   remainingTimeText.setText("Remaining time: 0s");
 
   gameOver = true;
@@ -126,7 +124,6 @@ function preload() {
   this.load.image("ground", "assets/platform.png");
   this.load.image("snow-ground", "assets/snow-platform.png");
   this.load.image("star", "assets/star.png");
-  //   this.load.image("star", "assets/items/1f384.svg");
   this.load.image("bomb", "assets/bomb.png");
   this.load.spritesheet("dude", "assets/dude.png", {
     frameWidth: 32,
@@ -138,8 +135,16 @@ function preload() {
   });
 
   // items
-  this.load.image("ring", "assets/items/ring.svg");
-  this.load.image("cash", "assets/items/cash.svg");
+  Object.entries(items).forEach(([key, data]) => {
+    // console.log(key, data, "<<<<");
+
+    this.load.image(key, data.path);
+  });
+  //   this.load.image("ring", "assets/items/ring.svg");
+  //   this.load.image("cash", "assets/items/cash.svg");
+  //   this.load.image("bike", "assets/items/bike.svg");
+  //   this.load.image("beer", "assets/items/beer.svg");
+  //   this.load.image("cat", "assets/items/cat.svg");
 }
 
 function create() {
@@ -215,13 +220,6 @@ function create() {
       backgroundColor: "rgba(255, 255, 255, 0.5)",
     }
   );
-
-  //   infoContainer = this.physics.add.staticGroup();
-  //   infoContainer.add(scoreText);
-  //   infoContainer.add(remainingTimeText);
-  //   console.log(infoContainer, "<<<< info container");
-  //   infoContainer.position.set(10, 10);
-  //   infoContainer.refreshBody();
 
   this.physics.add.collider(player, platforms);
   this.physics.add.collider(platforms, stars, itemHitsPlatform, null, this);
