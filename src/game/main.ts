@@ -1,6 +1,6 @@
 // import { AUTO, Game } from "phaser";
 import Phaser, { Game } from "phaser";
-import { items, itemKeys } from "./items.js";
+import { items, itemKeys, tempItems } from "./items.js";
 
 // const GAME_PLAY_TIME = 30000; // 30 seconds
 const GAME_PLAY_TIME = 20000;
@@ -135,7 +135,7 @@ function preload() {
   });
 
   // items
-  Object.entries(items).forEach(([key, data]) => {
+  Object.entries(tempItems).forEach(([key, data]) => {
     // console.log(key, data, "<<<<");
 
     this.load.image(key, data.path);
