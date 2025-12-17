@@ -15,10 +15,11 @@ export interface IRefPhaserGame {
 
 interface IProps {
   currentActiveScene?: (scene_instance: Phaser.Scene) => void;
+  gameId: string; // length is 10 ?
 }
 
 export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(
-  function PhaserGame({ currentActiveScene }, ref) {
+  function PhaserGame({ currentActiveScene, gameId }, ref) {
     const game = useRef<Phaser.Game | null>(null!);
     const friendName = "Jiho";
     const [likedItems, setLikedItems] = useState([]);
@@ -26,7 +27,7 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(
 
     useLayoutEffect(() => {
       if (game.current === null) {
-        game.current = StartGame("game-container");
+        game.current = StartGame("game-container", gameId);
 
         if (typeof ref === "function") {
           ref({ game: game.current, scene: null });
@@ -83,6 +84,12 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(
 
     return (
       <div>
+        {/* <button
+          className="p-4 rounded-2xl bg-teal-600"
+          onClick={createGameInterface}
+        >
+          Start
+        </button> */}
         <p>Let's find out what {friendName} wants for Christmas!</p>
         <div>💚 Likes: {likedItems.join(",")}</div>
         <div>💔 Dislikes: {dislikedItems.join(",")}</div>

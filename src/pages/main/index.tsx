@@ -3,11 +3,6 @@ import Link from "next/link";
 
 type Props = {};
 
-// export const metadata = {
-//   title: "Rudolph's Presents Game",
-//   description: "",
-// };
-
 function MainPage({}: Props) {
   return (
     <section className="flex flex-col justify-center gap-5 w-[500px] h-dvh mx-auto">

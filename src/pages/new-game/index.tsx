@@ -1,6 +1,7 @@
 import { generateUniqueHash } from "@/_utils/utils";
 import { type Items, type ItemKey, items, Item } from "@/game/items";
 import Image from "next/image";
+import Link from "next/link";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 
 type Props = { setGameId: Dispatch<SetStateAction<string | undefined>> };
@@ -26,9 +27,16 @@ function GameCreateSuccess({ uniqueId }: { uniqueId: string }) {
         game results.
       </p>
       <div>
-        <button>Share </button>
-        <button>Copy code</button>
+        Share
+        <ul className="flex">
+          <li>Facebook</li>
+          <li>X</li>
+          <li>Whatsapp</li>
+          <li>KakaoTalk</li>
+          <li>Copy link</li>
+        </ul>
       </div>
+      <Link href={`/game?gameId=${uniqueId}`}>Play game</Link>
     </div>
   );
 }

@@ -32,7 +32,7 @@ const dislikedItems = new Set();
 let likedItemsSize = 0;
 let dislikedItemsSize = 0;
 
-function generateRandomInteger(min: number, max: number) {
+function generateRandomInteger(min, max) {
   return min + Math.floor(Math.random() * max);
 }
 
@@ -102,33 +102,12 @@ function startTimer() {
   });
 }
 
-function handleLeftKeydown() {
-  player.setVelocityX(-400);
-  player.anims.play("left", true);
-}
-
-function handleRightKeydown() {
-  player.setVelocityX(400);
-  player.anims.play("right", true);
-}
-
-function setPlayerToNeutral() {
-  player.setVelocityX(0);
-
-  player.anims.play("turn");
-}
-
 function preload() {
   this.load.image("background", "assets/christmas-bg.jpg");
-  this.load.image("sky", "assets/sky.png");
   this.load.image("ground", "assets/platform.png");
   this.load.image("snow-ground", "assets/snow-platform.png");
   this.load.image("star", "assets/star.png");
   this.load.image("bomb", "assets/bomb.png");
-  this.load.spritesheet("dude", "assets/dude.png", {
-    frameWidth: 32,
-    frameHeight: 48,
-  });
   this.load.spritesheet("rudolph", "assets/rudolph-v2.png", {
     frameWidth: 64,
     frameHeight: 92,
@@ -302,7 +281,7 @@ function update() {
   }
 }
 
-const config: Phaser.Types.Core.GameConfig = {
+const config = {
   type: Phaser.AUTO,
   width: GAME_WIDTH,
   height: GAME_HEIGHT,
@@ -318,7 +297,7 @@ const config: Phaser.Types.Core.GameConfig = {
     width: GAME_WIDTH, // 365
     height: GAME_HEIGHT, // 600
   },
-  parent: "game-container",
+  // parent: "game-container",
   backgroundColor: "#3366b2",
   physics: {
     default: "arcade",
@@ -336,7 +315,7 @@ const config: Phaser.Types.Core.GameConfig = {
   },
 };
 
-const StartGame = (parent: string) => {
+const StartGame = (parent, gameId) => {
   return new Phaser.Game({ ...config, parent });
 };
 
