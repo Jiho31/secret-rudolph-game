@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import RudolphGame from "./scenes/RudolphGame.js";
+import RudolphGame from "./scenes/RudolphGame-copy.js";
 
 const GAME_WIDTH = 365;
 const GAME_HEIGHT = 500;

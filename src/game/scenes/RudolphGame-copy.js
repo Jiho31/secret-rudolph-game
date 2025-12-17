@@ -1,12 +1,11 @@
 import Phaser from "phaser";
 import { tempItems } from "../items.ts";
-import { EventBus } from "../EventBus.ts";
 
 const GAME_PLAY_TIME = 20000;
 const GAME_WIDTH = 365;
 const GAME_HEIGHT = 500;
 
-export class RudolphGame extends Phaser.Scene {
+export default class RudolphGame extends Phaser.Scene {
   constructor() {
     super("RudolphGame");
 
@@ -44,7 +43,7 @@ export class RudolphGame extends Phaser.Scene {
     star.disableBody(true, true);
 
     player.preFX.addGlow(0x00b90c); // green
-    setTimeout(() => player.preFX?.clear(), 300);
+    setTimeout(() => player.preFX.clear(), 300);
 
     this.score += 10;
     this.scoreText.setText("Score: " + this.score);
@@ -61,15 +60,13 @@ export class RudolphGame extends Phaser.Scene {
     this.scoreText.setText("Score: " + this.score);
     bomb.disableBody(true, true);
     player.preFX.addGlow(0xff0000); // red
-    setTimeout(() => player.preFX?.clear(), 300);
+    setTimeout(() => player.preFX.clear(), 300);
 
     this.dislikedItems.add(bomb.name);
   }
 
-  spawnLikedItems(x, items = []) {
+  spawnStar(x, items = []) {
     // gameObject.setRandomPosition
-    // console.log("3333333", items);
-
     const itemList = items.length > 0 ? items : ["star", "ring", "cash"];
     const item = itemList[this.generateRandomInteger(0, itemList.length)];
     let star = this.stars.create(x, 16, item);
@@ -96,18 +93,7 @@ export class RudolphGame extends Phaser.Scene {
     this.gameTimer.destroy();
     this.remainingTimeText.setText("Remaining time: 0s");
 
-    clearInterval(this.starSpawnId);
-    clearInterval(this.bombSpawnId);
-    // this.gameOver = true;
-    // this.game.pause();
-
-    this.game.events.emit("game-over", { score: this.score });
-
-    this.changeScene();
-  }
-
-  changeScene() {
-    this.scene.start("GameOver");
+    this.gameOver = true;
   }
 
   startTimer() {
@@ -119,50 +105,11 @@ export class RudolphGame extends Phaser.Scene {
     });
   }
 
-  // init
-  startGame(likedItems) {
-    this.leftKey = this.input.keyboard.addKey("LEFT"); // Get key object
-    this.rightKey = this.input.keyboard.addKey("RIGHT"); // Get key object
-
-    this.starSpawnId = setInterval(
-      () =>
-        this.spawnLikedItems(
-          this.generateRandomInteger(10, GAME_WIDTH),
-          likedItems
-        ),
-      800
-    );
-
-    this.bombSpawnId = setInterval(
-      () => this.spwanBomb(this.generateRandomInteger(10, GAME_WIDTH)),
-      1000
-    );
-
-    this.scoreText = this.add.text(16, 16, "score: 0", {
-      fontSize: "20px",
-      fill: "#000",
-      backgroundColor: "rgba(255, 255, 255, 0.5)",
-    });
-
-    this.remainingTimeText = this.add.text(
-      16,
-      38,
-      `Remaining Time: ${GAME_PLAY_TIME / 1000 + 1}s`,
-      {
-        fontSize: "20px",
-        fill: "#000",
-        backgroundColor: "rgba(255, 255, 255, 0.5)",
-      }
-    );
-
-    this.startTimer();
-  }
-
   preload() {
-    // this.load.image("background", "assets/christmas-bg.jpg");
+    this.load.image("background", "assets/christmas-bg.jpg");
     this.load.image("ground", "assets/platform.png");
     this.load.image("snow-ground", "assets/snow-platform.png");
-    this.load.image("star", "assets/star-2.png");
+    this.load.image("star", "assets/star.png");
     this.load.image("bomb", "assets/bomb.png");
     this.load.spritesheet("rudolph", "assets/rudolph-v2.png", {
       frameWidth: 64,
@@ -230,8 +177,37 @@ export class RudolphGame extends Phaser.Scene {
       repeat: -1,
     });
 
+    this.leftKey = this.input.keyboard.addKey("LEFT"); // Get key object
+    this.rightKey = this.input.keyboard.addKey("RIGHT"); // Get key object
+
     this.stars = this.physics.add.group();
+    this.starSpawnId = setInterval(
+      () => this.spawnStar(this.generateRandomInteger(10, GAME_WIDTH)),
+      800
+    );
+
     this.bombs = this.physics.add.group();
+    this.bombSpawnId = setInterval(
+      () => this.spwanBomb(this.generateRandomInteger(10, GAME_WIDTH)),
+      1000
+    );
+
+    this.scoreText = this.add.text(16, 16, "score: 0", {
+      fontSize: "20px",
+      fill: "#000",
+      backgroundColor: "rgba(255, 255, 255, 0.5)",
+    });
+
+    this.remainingTimeText = this.add.text(
+      16,
+      38,
+      `Remaining Time: ${GAME_PLAY_TIME / 1000 + 1}s`,
+      {
+        fontSize: "20px",
+        fill: "#000",
+        backgroundColor: "rgba(255, 255, 255, 0.5)",
+      }
+    );
 
     this.physics.add.collider(this.player, this.platforms);
     this.physics.add.collider(
@@ -264,12 +240,19 @@ export class RudolphGame extends Phaser.Scene {
       this
     );
 
-    EventBus.emit("current-scene-ready", this);
+    this.startTimer();
   }
 
   update() {
     if (this.gameOver) {
+      clearInterval(this.starSpawnId);
+      clearInterval(this.bombSpawnId);
+
+      this.game.events.emit("game-over", { score: this.score });
+      this.game.pause();
+
       return;
+      // game over scene 으로 전환?
     }
 
     //   let viewport = this.scene.scale.getViewPort();
@@ -283,16 +266,11 @@ export class RudolphGame extends Phaser.Scene {
 
       this.background.setPosition(width / 2, height / 2);
       this.background.setDisplaySize(width, height);
-
+      // console.log(platforms);
       this.platforms.setXY(width / 2, height);
       // platforms.refreshBody();
 
       this.player.setY(height - 50);
-    }
-
-    if (!this.gameTimer) {
-      // game started / is being playing
-      return;
     }
 
     if (
@@ -333,4 +311,3 @@ export class RudolphGame extends Phaser.Scene {
     }
   }
 }
-

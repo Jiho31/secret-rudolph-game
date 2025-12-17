@@ -27,7 +27,7 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(
 
     useLayoutEffect(() => {
       if (game.current === null) {
-        game.current = StartGame("game-container", gameId);
+        game.current = StartGame("game-container");
 
         if (typeof ref === "function") {
           ref({ game: game.current, scene: null });
@@ -62,23 +62,23 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(
         }
       });
 
-      game.current.events.on("update-itemList", (data) => {
+      game.current?.events.on("update-itemList", (data) => {
         // console.log(data);
         setLikedItems(data);
       });
 
-      game.current.events.on("update-dislikes", (data) => {
+      game.current?.events.on("update-dislikes", (data) => {
         // console.log(data);
         setDislikedItems(data);
       });
 
-      game.current.events.on("game-over", (data) => {
+      game.current?.events.on("game-over", (data) => {
         console.log(data.score, " ####### GAME OVER EVENT EMITTED!");
       });
 
       return () => {
         EventBus.removeListener("current-scene-ready");
-        game.current.events.removeListener("game-over");
+        game.current?.events.removeListener("game-over");
       };
     }, [currentActiveScene, ref]);
 
