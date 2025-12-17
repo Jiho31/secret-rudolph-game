@@ -55,13 +55,31 @@ function App() {
     }
   };
 
+  // local storage
+  const fetchGameData = (gameId: string) => {
+    if (!gameId) {
+      // @todo handle game id invalid error
+      throw new Error("game id is invalid");
+    }
+    const data = localStorage.getItem(gameId);
+    if (!data) {
+      return {};
+    }
+    return JSON.parse(data);
+  };
+
   const start = () => {
+    const gameData = fetchGameData(gameId);
+    console.log(gameData);
+    // { likes, dislikes, name }
+    const likes = gameData.likes || ["beer", "ring"];
+    const dislikes = gameData.dislikes || ["bomb"];
+
     if (phaserRef.current) {
       const scene = phaserRef.current.scene as RudolphGame;
 
-      const likes = ["beer", "ring"];
       if (scene && scene.scene.key === "RudolphGame") {
-        scene.startGame(likes);
+        scene.startGame({ likes, dislikes });
       }
     }
   };

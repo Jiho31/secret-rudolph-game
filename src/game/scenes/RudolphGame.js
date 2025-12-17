@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { tempItems } from "../items.ts";
+import { tempItems, items } from "../items.ts";
 import { EventBus } from "../EventBus.ts";
 
 const GAME_PLAY_TIME = 20000;
@@ -81,11 +81,14 @@ export class RudolphGame extends Phaser.Scene {
     star.setVelocity(0, DROP_SPEED);
   }
 
-  spwanBomb(x) {
-    let bomb = this.bombs.create(x, 16, "bomb");
+  spwanBomb(x, items = []) {
+    const itemList = items.length > 0 ? items : ["star", "ring", "cash"];
+    const item = itemList[this.generateRandomInteger(0, itemList.length)];
+    let bomb = this.bombs.create(x, 16, item);
     // bomb.setBounce(1);
+    bomb.name = item;
     bomb.setCollideWorldBounds(true);
-    bomb.name = "bomb";
+    bomb.setDisplaySize(25, 25);
 
     const DROP_SPEED = 50; // bigger the value, faster drop
     bomb.setVelocity(0, DROP_SPEED);
@@ -120,21 +123,19 @@ export class RudolphGame extends Phaser.Scene {
   }
 
   // init
-  startGame(likedItems) {
+  startGame({ likes, dislikes }) {
     this.leftKey = this.input.keyboard.addKey("LEFT"); // Get key object
     this.rightKey = this.input.keyboard.addKey("RIGHT"); // Get key object
 
     this.starSpawnId = setInterval(
       () =>
-        this.spawnLikedItems(
-          this.generateRandomInteger(10, GAME_WIDTH),
-          likedItems
-        ),
+        this.spawnLikedItems(this.generateRandomInteger(10, GAME_WIDTH), likes),
       800
     );
 
     this.bombSpawnId = setInterval(
-      () => this.spwanBomb(this.generateRandomInteger(10, GAME_WIDTH)),
+      () =>
+        this.spwanBomb(this.generateRandomInteger(10, GAME_WIDTH), dislikes),
       1000
     );
 
@@ -170,7 +171,7 @@ export class RudolphGame extends Phaser.Scene {
     });
 
     // items
-    Object.entries(tempItems).forEach(([key, data]) => {
+    Object.entries(items).forEach(([key, data]) => {
       // console.log(key, data, "<<<<");
 
       this.load.image(key, data.path);
@@ -333,4 +334,3 @@ export class RudolphGame extends Phaser.Scene {
     }
   }
 }
-
