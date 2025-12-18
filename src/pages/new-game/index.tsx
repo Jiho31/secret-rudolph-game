@@ -263,7 +263,8 @@ function GameCreateSteps({ setGameId }: Props) {
 }
 
 export default function NewGame({}: Props) {
-  const [gameId, setGameId] = useState<string | undefined>("068Duw7BoV"); // initialised for testing
+  // const [gameId, setGameId] = useState<string | undefined>("068Duw7BoV"); // initialised for testing
+  const [gameId, setGameId] = useState<string | undefined>(""); // initialised for testing
 
   return (
     <section className="flex flex-col justify-center gap-5 w-[500px] max-w-dvw h-auto p-5 mx-auto">

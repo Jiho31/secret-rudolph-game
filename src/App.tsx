@@ -3,6 +3,7 @@ import { IRefPhaserGame, PhaserGame } from "./PhaserGame";
 import { useRouter } from "next/router";
 import { RudolphGame } from "./game/scenes/RudolphGame";
 import { MainMenu } from "./game/scenes/MainMenu";
+import { itemKeys } from "./game/items";
 
 function App() {
   // The sprite can only be moved in the MainMenu Scene
@@ -19,6 +20,8 @@ function App() {
     console.log(router.query.gameId);
     if (router.query.gameId && typeof router.query.gameId == "string") {
       setGameId(router.query.gameId);
+    } else {
+      // @todo redirect to main page ? or play with default items mode
     }
   }, [router]);
 
@@ -72,7 +75,7 @@ function App() {
     const gameData = fetchGameData(gameId);
     console.log(gameData);
     // { likes, dislikes, name }
-    const likes = gameData.likes || ["beer", "ring"];
+    const likes = gameData.likes || [itemKeys.SNOWFLAKE];
     const dislikes = gameData.dislikes || ["bomb"];
 
     if (phaserRef.current) {
