@@ -22,8 +22,27 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(
   function PhaserGame({ currentActiveScene, gameId }, ref) {
     const game = useRef<Phaser.Game | null>(null!);
     const friendName = "Jiho";
+    const playerName = "Anonymous";
     const [likedItems, setLikedItems] = useState([]);
     const [dislikedItems, setDislikedItems] = useState([]);
+
+    const saveGameResult = (score: number) => {
+      const data = localStorage.getItem(gameId);
+      if (!data) {
+        // invalid game!
+        console.log("Failed to fetch game data! Check game id");
+        return;
+      }
+      const parsed = JSON.parse(data);
+      const newResult = [...parsed.result, { player: playerName, score }].sort(
+        (a, b) => b.score - a.score
+      );
+
+      localStorage.setItem(
+        gameId,
+        JSON.stringify({ ...parsed, result: newResult })
+      );
+    };
 
     useLayoutEffect(() => {
       if (game.current === null) {
@@ -73,7 +92,11 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(
       });
 
       game.current?.events.on("game-over", (data) => {
-        console.log(data.score, " ####### GAME OVER EVENT EMITTED!");
+        if (typeof data.score !== "number") {
+          console.error("Failed to save game result.");
+          return;
+        }
+        saveGameResult(data.score);
       });
 
       return () => {
@@ -84,12 +107,6 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(
 
     return (
       <div>
-        {/* <button
-          className="p-4 rounded-2xl bg-teal-600"
-          onClick={createGameInterface}
-        >
-          Start
-        </button> */}
         <p>Let's find out what {friendName} wants for Christmas!</p>
         <div>💚 Likes: {likedItems.join(",")}</div>
         <div>💔 Dislikes: {dislikedItems.join(",")}</div>
