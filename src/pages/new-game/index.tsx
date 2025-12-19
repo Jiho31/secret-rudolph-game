@@ -63,15 +63,23 @@ function GameCreateSteps({ setGameId }: Props) {
     setCurrentStep((prev) => prev - 1);
   };
 
+  const sanitizeNickname = (input: string) => {
+    let name = input.trim();
+    name = name.replace(/\s+/g, " "); // replace multiple spaces with single space
+    name = name.replace(/[^\p{L}\p{N} _-]/gu, "");
+    return name;
+  };
+
   const handleNextClick = () => {
     if (isLastStep) {
       handleCreateGame();
       return;
     }
 
-    if (currentStep === 1 && nickname.trim().length === 0) {
+    // @todo input validation check
+    if (currentStep === 1 && nickname.trim().length < 1) {
       // console.log("Please enter your nickname");
-      setErrorMessage("Please enter your nickname");
+      setErrorMessage("Please enter your nickname. (At least 1 character)");
       return;
     }
 
@@ -142,6 +150,7 @@ function GameCreateSteps({ setGameId }: Props) {
 
   const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNickname(e.target.value);
+    // console.log(e, "### input changed");
   };
 
   const isSelected = (key: ItemKey) => {
@@ -162,21 +171,22 @@ function GameCreateSteps({ setGameId }: Props) {
         Step {currentStep} / {totalSteps}
       </h2>
       <div className={`${currentStep === 1 ? "block" : "hidden"}`}>
-        <label htmlFor="nickname">
-          What is your nickname? (max 20 characters)
-        </label>
+        <label htmlFor="nickname">What is your nickname?</label>
         <p className="text-sm text-gray-200 my-2">
-          * This nickname will be displayed to your friends when you share the
+          * Type in 1-25 characters of letters, numbers, spaces, _ and - <br />*
+          This nickname will be displayed to your friends when you share the
           game
         </p>
         <input
-          className="p-4 rounded-xl bg-green-50 text-gray-800 w-full"
+          className="p-3 rounded-xl bg-green-50 text-gray-800 w-full"
           type="text"
           name="nickname"
+          placeholder="Nickname (1-25 characters)"
           id="nickname"
           value={nickname}
-          maxLength={20}
+          maxLength={25}
           onChange={handleChangeInput}
+          onBlur={() => setNickname(sanitizeNickname(nickname))}
         />
       </div>
 
@@ -244,7 +254,8 @@ function GameCreateSteps({ setGameId }: Props) {
       </div>
 
       <div className={`${currentStep === 4 ? "block" : "hidden"}`}>
-        <h3>Selected items: </h3>
+        <p>Nickname: {nickname}</p>
+        <p>Selected items: </p>
         <div className="flex flex-col gap-2">
           <p>Likes: {selectedLikes.length} items selected</p>
           <ul className="flex gap-2">
