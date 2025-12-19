@@ -92,17 +92,17 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(
         }
       });
 
-      game.current?.events.on("update-itemList", (data) => {
+      game.current?.events.on("update-itemList", (data: any) => {
         // console.log(data);
         setLikedItems(data);
       });
 
-      game.current?.events.on("update-dislikes", (data) => {
+      game.current?.events.on("update-dislikes", (data: any) => {
         // console.log(data);
         setDislikedItems(data);
       });
 
-      game.current?.events.on("game-over", (data) => {
+      game.current?.events.on("game-over", (data: any) => {
         if (typeof data.score !== "number") {
           console.error("Failed to save game result.");
           return;
