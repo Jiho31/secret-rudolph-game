@@ -31,13 +31,9 @@ export class MainMenu extends Scene {
       .setOrigin(0.5)
       .setDepth(100);
 
-    this.title.setInteractive().on(
-      "pointerdown",
-      function () {
-        this.changeScene();
-      },
-      this
-    );
+    this.title.setInteractive().on("pointerdown", () => {
+      this.changeScene();
+    });
 
     EventBus.emit("current-scene-ready", this);
   }
