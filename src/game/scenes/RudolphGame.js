@@ -103,7 +103,7 @@ export class RudolphGame extends Phaser.Scene {
 
     // this.gameOver = true;
     // this.game.pause(); // this blocks scene changes
-    this.registry.gameScore = this.score;
+    this.registry.set("gameScore", this.score);
 
     this.game.events.emit("game-over", { score: this.score });
 

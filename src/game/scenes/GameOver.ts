@@ -25,7 +25,7 @@ export class GameOver extends Scene {
     this.gameOverText = this.add
       .text(182, this.scene.systems.scale.height / 2 - 30, "Game Over", {
         fontFamily: "Arial Black",
-        fontSize: 24,
+        fontSize: 30,
         color: "#ffffff",
         stroke: "#000000",
         strokeThickness: 8,
@@ -38,7 +38,7 @@ export class GameOver extends Scene {
       .text(
         182,
         this.scene.systems.scale.height / 2 + 30,
-        `Your Score: ${this.registry?.gameScore}`,
+        `Your Score: ${this.registry.get("gameScore")}`,
         {
           fontFamily: "Arial Black",
           fontSize: 30,
