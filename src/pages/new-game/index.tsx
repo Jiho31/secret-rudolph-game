@@ -1,7 +1,8 @@
 import { generateUniqueHash } from "@/_utils/utils";
 import { type Items, type ItemKey, items, Item } from "@/game/items";
 import Image from "next/image";
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import Link from "next/link";
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 
 type Props = { setGameId: Dispatch<SetStateAction<string | undefined>> };
 
@@ -11,30 +12,79 @@ const MIN_DISLIKES_COUNT = 1;
 const MAX_DISLIKES_COUNT = 5;
 
 function GameCreateSuccess({ uniqueId }: { uniqueId: string }) {
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(uniqueId);
+      alert("Game code copied!");
+    } catch (err) {
+      console.error("Failed to copy!", err);
+      alert("Failed to copy the code. Please copy it manually.");
+    }
+  };
+
   return (
-    <div>
+    <div className="flex flex-col gap-4 justify-center">
+      <h1 className="text-xl font-bold p-4">
+        Game has been successfully created!
+      </h1>
       <p>
-        Game has been successfully created! <br />
         Your code: {uniqueId}
-        <button className="bg-green-500">Copy code</button>
+        <button
+          className="bg-green-600 cursor-pointer"
+          onClick={handleCopyCode}
+        >
+          Copy
+        </button>
         <br />
+      </p>
+      <p>
         Share the link with your friends to find out how well they guess your
-        wishlist by playing the game. <br />
+        wishlist by playing the game.
       </p>
       <p>
         Please keep in mind you will need to save the link or code to check the
         game results.
       </p>
       <div>
-        <button>Share </button>
-        <button>Copy code</button>
+        🔗 Share
+        <ul className="flex gap-2">
+          <li className="p-2 rounded-2xl bg-white text-black cursor-pointer">
+            Facebook
+          </li>
+          <li className="p-2 rounded-2xl bg-white text-black cursor-pointer">
+            X
+          </li>
+          <li className="p-2 rounded-2xl bg-white text-black cursor-pointer">
+            Whatsapp
+          </li>
+          <li className="p-2 rounded-2xl bg-white text-black cursor-pointer">
+            KakaoTalk
+          </li>
+          <li className="p-2 rounded-2xl bg-white text-black cursor-pointer">
+            Copy link
+          </li>
+        </ul>
+      </div>
+      <div className="flex gap-2 mt-3 text-center">
+        <Link
+          href={`/game?gameId=${uniqueId}`}
+          className="flex-1 w-fit px-6 py-4 rounded-xl bg-green-700 hover:bg-green-800 cursor-pointer"
+        >
+          Play game
+        </Link>
+        <Link
+          href="/"
+          className="flex-1 px-6 py-4 rounded-xl bg-green-700 hover:bg-green-800 cursor-pointer"
+        >
+          Back to main
+        </Link>
       </div>
     </div>
   );
 }
 
 function GameCreateSteps({ setGameId }: Props) {
-  const totalSteps = 3;
+  const totalSteps = 4;
   const [currentStep, setCurrentStep] = useState(1);
   const isLastStep = useMemo(() => currentStep === totalSteps, [currentStep]);
   const [itemOptions, setItemOptions] = useState(items);
@@ -47,10 +97,19 @@ function GameCreateSteps({ setGameId }: Props) {
     return Object.fromEntries(entries);
   }, [selectedLikes, itemOptions]);
 
+  const [nickname, setNickname] = useState("");
+
   const [errorMessage, setErrorMessage] = useState("");
 
   const handlePrevClick = () => {
     setCurrentStep((prev) => prev - 1);
+  };
+
+  const sanitizeNickname = (input: string) => {
+    let name = input.trim();
+    name = name.replace(/\s+/g, " "); // replace multiple spaces with single space
+    name = name.replace(/[^\p{L}\p{N} _-]/gu, "");
+    return name;
   };
 
   const handleNextClick = () => {
@@ -59,11 +118,19 @@ function GameCreateSteps({ setGameId }: Props) {
       return;
     }
 
+    // @todo input validation check
+    if (currentStep === 1 && nickname.trim().length < 1) {
+      // console.log("Please enter your nickname");
+      setErrorMessage("Please enter your nickname. (At least 1 character)");
+      return;
+    }
+
     if (
-      (currentStep === 1 && selectedLikes.length < 1) ||
-      (currentStep === 2 && selectedDislikes.length < 1)
+      (currentStep === 2 && selectedLikes.length < 1) ||
+      (currentStep === 3 && selectedDislikes.length < 1)
     ) {
-      console.log("Select at least 1 item");
+      // console.log("Select at least 1 item");
+      setErrorMessage("Select at least 1 item");
       return;
     }
 
@@ -74,7 +141,7 @@ function GameCreateSteps({ setGameId }: Props) {
     //create hash
     const uniqueId = generateUniqueHash();
     const newGameData = {
-      name: "owner", // owner name
+      name: nickname, // owner name
       likes: selectedLikes,
       dislikes: selectedDislikes,
       result: [], // { player: 'anonymous', score: 5 }
@@ -82,7 +149,7 @@ function GameCreateSteps({ setGameId }: Props) {
 
     // @todo save to db
     localStorage.setItem(uniqueId, JSON.stringify(newGameData));
-    console.log("saved!@@@@@", uniqueId, newGameData);
+    // console.log("saved!@@@@@", uniqueId, newGameData);
     setGameId(uniqueId);
   };
 
@@ -90,26 +157,28 @@ function GameCreateSteps({ setGameId }: Props) {
     e: React.MouseEvent<HTMLLIElement>,
     itemKey: ItemKey
   ) => {
-    if (currentStep === 1) {
+    if (currentStep === 2) {
       if (selectedLikes.includes(itemKey)) {
         setSelectedLikes((likedList) =>
           likedList.filter((key) => key !== itemKey)
         );
       } else {
         if (MAX_LIKES_COUNT === selectedLikes.length) {
-          console.log("Cannot select more! Reached maximum selections");
+          // console.log("Cannot select more! Reached maximum selections");
+          setErrorMessage(`You can select up to ${MAX_LIKES_COUNT} items.`);
           return;
         }
         setSelectedLikes((likedList) => [...likedList, itemKey]);
       }
-    } else if (currentStep === 2) {
+    } else if (currentStep === 3) {
       if (selectedDislikes.includes(itemKey)) {
         setSelectedDislikes((dislikedList) =>
           dislikedList.filter((key) => key !== itemKey)
         );
       } else {
         if (MAX_DISLIKES_COUNT === selectedDislikes.length) {
-          console.log("Cannot select more! Reached maximum selections");
+          // console.log("Cannot select more! Reached maximum selections");
+          setErrorMessage(`You can select up to ${MAX_DISLIKES_COUNT} items.`);
           return;
         }
         setSelectedDislikes((dislikedList) => [...dislikedList, itemKey]);
@@ -117,10 +186,19 @@ function GameCreateSteps({ setGameId }: Props) {
     }
   };
 
+  useEffect(() => {
+    setErrorMessage("");
+  }, [currentStep]);
+
+  const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNickname(e.target.value);
+    // console.log(e, "### input changed");
+  };
+
   const isSelected = (key: ItemKey) => {
-    if (currentStep === 1) {
+    if (currentStep === 2) {
       return selectedLikes.includes(key);
-    } else if (currentStep === 2) {
+    } else if (currentStep === 3) {
       return selectedDislikes.includes(key);
     }
   };
@@ -134,8 +212,27 @@ function GameCreateSteps({ setGameId }: Props) {
       <h2>
         Step {currentStep} / {totalSteps}
       </h2>
+      <div className={`${currentStep === 1 ? "block" : "hidden"}`}>
+        <label htmlFor="nickname">What is your nickname?</label>
+        <p className="text-sm text-gray-200 my-2">
+          * Type in 1-25 characters of letters, numbers, spaces, _ and - <br />*
+          This nickname will be displayed to your friends when you share the
+          game
+        </p>
+        <input
+          className="p-3 rounded-xl bg-green-50 text-gray-800 w-full"
+          type="text"
+          name="nickname"
+          placeholder="Nickname (1-25 characters)"
+          id="nickname"
+          value={nickname}
+          maxLength={25}
+          onChange={handleChangeInput}
+          onBlur={() => setNickname(sanitizeNickname(nickname))}
+        />
+      </div>
 
-      <div className={currentStep === 1 ? "block" : "hidden"}>
+      <div className={currentStep === 2 ? "block" : "hidden"}>
         <div>I would like.. {selectedLikes.length} selected</div>
         <p>
           Select {MIN_LIKES_COUNT} to {MAX_LIKES_COUNT} items
@@ -166,7 +263,7 @@ function GameCreateSteps({ setGameId }: Props) {
         </ul>
       </div>
 
-      <div className={currentStep === 2 ? "block" : "hidden"}>
+      <div className={currentStep === 3 ? "block" : "hidden"}>
         <div>I would NOT like.. {selectedDislikes.length} selected</div>
         <p>
           Select {MIN_DISLIKES_COUNT} to {MAX_DISLIKES_COUNT} items
@@ -198,8 +295,9 @@ function GameCreateSteps({ setGameId }: Props) {
         </ul>
       </div>
 
-      <div className={`${currentStep === 3 ? "block" : "hidden"}`}>
-        <h3>Selected items: </h3>
+      <div className={`${currentStep === 4 ? "block" : "hidden"}`}>
+        <p>Nickname: {nickname}</p>
+        <p>Selected items: </p>
         <div className="flex flex-col gap-2">
           <p>Likes: {selectedLikes.length} items selected</p>
           <ul className="flex gap-2">
@@ -234,6 +332,14 @@ function GameCreateSteps({ setGameId }: Props) {
         </div>
       </div>
 
+      <div
+        className={`text-sm bg-red-200 text-black text-center px-3 py-1 rounded-lg ${
+          errorMessage.length > 0 ? "visible" : "invisible"
+        }`}
+      >
+        ⚠️{errorMessage}
+      </div>
+
       <div className="flex gap-2">
         <button
           className="flex-1/2 p-3 rounded-xl bg-green-700 hover:cursor-pointer disabled:cursor-not-allowed disabled:bg-green-900"
@@ -255,7 +361,8 @@ function GameCreateSteps({ setGameId }: Props) {
 }
 
 export default function NewGame({}: Props) {
-  const [gameId, setGameId] = useState<string | undefined>("068Duw7BoV"); // initialised for testing
+  const [gameId, setGameId] = useState<string | undefined>("2X1dWgwnao"); // initialised for testing
+  // const [gameId, setGameId] = useState<string | undefined>("");
 
   return (
     <section className="flex flex-col justify-center gap-5 w-[500px] max-w-dvw h-auto p-5 mx-auto">

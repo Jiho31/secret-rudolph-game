@@ -1,97 +1,123 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IRefPhaserGame, PhaserGame } from "./PhaserGame";
+import { useRouter } from "next/router";
+import { RudolphGame } from "./game/scenes/RudolphGame";
 import { MainMenu } from "./game/scenes/MainMenu";
+import { itemKeys } from "./game/items";
 
 function App() {
-  // The sprite can only be moved in the MainMenu Scene
-  const [canMoveSprite, setCanMoveSprite] = useState(true);
+  const router = useRouter();
+  const [isVisible, setIsVisible] = useState(false);
+  const [gameId, setGameId] = useState("");
+  const [gameData, setGameData] = useState<any>({});
+  const [friendName, setFriendName] = useState("");
+  const [playerName, setPlayerName] = useState("Anonymous");
 
   //  References to the PhaserGame component (game and scene are exposed)
   const phaserRef = useRef<IRefPhaserGame | null>(null);
-  const [spritePosition, setSpritePosition] = useState({ x: 0, y: 0 });
 
-  const changeScene = () => {
-    if (phaserRef.current) {
-      const scene = phaserRef.current.scene as MainMenu;
-
-      if (scene) {
-        scene.changeScene();
-      }
+  useEffect(() => {
+    console.log(router.query.gameId);
+    if (router.query.gameId && typeof router.query.gameId == "string") {
+      setGameId(router.query.gameId);
+    } else {
+      // @todo redirect to main page ? or play with default items mode
     }
+  }, [router]);
+
+  useEffect(() => {
+    const gameData = fetchGameData(gameId);
+    setGameData(gameData);
+    setFriendName(gameData.name || "Friend");
+  }, [gameId]);
+
+  // local storage
+  const fetchGameData = (gameId: string) => {
+    if (!gameId) {
+      // @todo handle game id invalid error
+      // throw new Error("game id is invalid");
+      console.error("game id is invalid");
+      return {};
+    }
+    const data = localStorage.getItem(gameId);
+    if (!data) {
+      return {};
+    }
+    return JSON.parse(data);
   };
 
-  const moveSprite = () => {
-    if (phaserRef.current) {
-      const scene = phaserRef.current.scene as MainMenu;
-
-      if (scene && scene.scene.key === "MainMenu") {
-        // Get the update logo position
-        scene.moveLogo(({ x, y }) => {
-          setSpritePosition({ x, y });
-        });
-      }
-    }
+  const validatePlayerName = (name: string) => {
+    const regex = /^[\p{L}\p{N} _-]{1,20}$/u;
+    return regex.test(name.trim());
   };
 
-  const addSprite = () => {
+  const start = () => {
+    if (!validatePlayerName(playerName)) {
+      alert(
+        "Invalid player name! Please type in 1-20 characters of letters, numbers, spaces, _ and -"
+      );
+      return;
+    }
+
+    // @todo handle invalid game data
+    const likes = gameData.likes || [itemKeys.SNOWFLAKE];
+    const dislikes = gameData.dislikes || ["bomb"];
+
     if (phaserRef.current) {
-      const scene = phaserRef.current.scene;
+      const scene = phaserRef.current.scene as RudolphGame;
 
-      if (scene) {
-        // Add more stars
-        const x = Phaser.Math.Between(64, scene.scale.width - 64);
-        const y = Phaser.Math.Between(64, scene.scale.height - 64);
+      if (scene && scene.scene.key === "RudolphGame") {
+        scene.startGame({ likes, dislikes });
 
-        //  `add.sprite` is a Phaser GameObjectFactory method and it returns a Sprite Game Object instance
-        const star = scene.add.sprite(x, y, "star");
-
-        //  ... which you can then act upon. Here we create a Phaser Tween to fade the star sprite in and out.
-        //  You could, of course, do this from within the Phaser Scene code, but this is just an example
-        //  showing that Phaser objects and systems can be acted upon from outside of Phaser itself.
-        scene.add.tween({
-          targets: star,
-          duration: 500 + Math.random() * 1000,
-          alpha: 0,
-          yoyo: true,
-          repeat: -1,
-        });
+        setIsVisible(false);
       }
     }
   };
 
   // Event emitted from the PhaserGame component
   const currentScene = (scene: Phaser.Scene) => {
-    setCanMoveSprite(scene.scene.key !== "MainMenu");
+    if (scene.scene.key === "RudolphGame") {
+      setIsVisible(true);
+    }
   };
 
   return (
     <div id="app">
-      <PhaserGame ref={phaserRef} currentActiveScene={currentScene} />
-      {/* <div>
-                <div>
-                    <button className="button" onClick={changeScene}>
-                        Change Scene
-                    </button>
-                </div>
-                <div>
-                    <button
-                        disabled={canMoveSprite}
-                        className="button"
-                        onClick={moveSprite}
-                    >
-                        Toggle Movement
-                    </button>
-                </div>
-                <div className="spritePosition">
-                    Sprite Position:
-                    <pre>{`{\n  x: ${spritePosition.x}\n  y: ${spritePosition.y}\n}`}</pre>
-                </div>
-                <div>
-                    <button className="button" onClick={addSprite}>
-                        Add New Sprite
-                    </button>
-                </div>
-            </div> */}
+      {isVisible && (
+        <div className="absolute w-full h-full z-10 bg-black/50 flex justify-center items-center">
+          <div className="bg-white px-5 py-8 rounded-3xl flex flex-col gap-3 text-black w-[350px] h-fit">
+            <label htmlFor="playerName">What is your name?</label>
+            <input
+              type="text"
+              id="playerName"
+              name="playerName"
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
+              placeholder="Type in nickname (1-20 characters)"
+              maxLength={20}
+              className="p-3 bg-white border border-gray-300 rounded-xl"
+            />
+            <p className="text-sm">
+              This name will be saved and displayed on the scoreboard after you
+              play.
+            </p>
+            <button
+              type="button"
+              className="self-center mt-3 w-fit h-fit rounded-xl p-4 bg-green-700 hover:bg-green-800 text-white hover:cursor-pointer"
+              onClick={start}
+            >
+              Start Game
+            </button>
+          </div>
+        </div>
+      )}
+      <PhaserGame
+        ref={phaserRef}
+        currentActiveScene={currentScene}
+        gameId={gameId}
+        friendName={friendName}
+        playerName={playerName}
+      />
     </div>
   );
 }
