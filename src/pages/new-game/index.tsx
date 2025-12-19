@@ -22,21 +22,34 @@ function GameCreateSuccess({ uniqueId }: { uniqueId: string }) {
     }
   };
 
+  const copyLink = async () => {
+    try {
+      if (!window || !window.location) {
+        throw new Error("window.location is undefined");
+      }
+      const fullLink = `${window.location.origin}/game?gameId=${uniqueId}`;
+      await navigator.clipboard.writeText(fullLink);
+      alert("Share link is copied!");
+    } catch (err) {
+      console.error("Failed to copy!", err);
+      alert("Failed to copy the link. Please copy it manually.");
+    }
+  };
+
   return (
-    <div className="flex flex-col gap-4 justify-center">
+    <div className="flex flex-col gap-4">
       <h1 className="text-xl font-bold p-4">
         Game has been successfully created!
       </h1>
-      <p>
+      <div className="font-semibold">
         Your code: {uniqueId}
         <button
-          className="bg-green-600 cursor-pointer"
+          className="ml-2 bg-green-600 py-1 px-2.5 rounded-2xl cursor-pointer font-medium"
           onClick={handleCopyCode}
         >
           Copy
         </button>
-        <br />
-      </p>
+      </div>
       <p>
         Share the link with your friends to find out how well they guess your
         wishlist by playing the game.
@@ -46,21 +59,24 @@ function GameCreateSuccess({ uniqueId }: { uniqueId: string }) {
         game results.
       </p>
       <div>
-        🔗 Share
-        <ul className="flex gap-2">
-          <li className="p-2 rounded-2xl bg-white text-black cursor-pointer">
+        <div className="my-2 font-semibold">🔗 Share</div>
+        <ul className="flex gap-2 flex-wrap">
+          {/* <li className="px-3 py-1 rounded-2xl bg-white text-black cursor-pointer">
             Facebook
           </li>
-          <li className="p-2 rounded-2xl bg-white text-black cursor-pointer">
+          <li className="px-3 py-1 rounded-2xl bg-white text-black cursor-pointer">
             X
           </li>
-          <li className="p-2 rounded-2xl bg-white text-black cursor-pointer">
+          <li className="px-3 py-1 rounded-2xl bg-white text-black cursor-pointer">
             Whatsapp
           </li>
-          <li className="p-2 rounded-2xl bg-white text-black cursor-pointer">
+          <li className="px-3 py-1 rounded-2xl bg-white text-black cursor-pointer">
             KakaoTalk
-          </li>
-          <li className="p-2 rounded-2xl bg-white text-black cursor-pointer">
+          </li> */}
+          <li
+            className="px-3 py-1 rounded-2xl bg-white text-black cursor-pointer"
+            onClick={copyLink}
+          >
             Copy link
           </li>
         </ul>
@@ -76,7 +92,7 @@ function GameCreateSuccess({ uniqueId }: { uniqueId: string }) {
           href="/"
           className="flex-1 px-6 py-4 rounded-xl bg-green-700 hover:bg-green-800 cursor-pointer"
         >
-          Back to main
+          Back to home
         </Link>
       </div>
     </div>
@@ -118,9 +134,7 @@ function GameCreateSteps({ setGameId }: Props) {
       return;
     }
 
-    // @todo input validation check
     if (currentStep === 1 && nickname.trim().length < 1) {
-      // console.log("Please enter your nickname");
       setErrorMessage("Please enter your nickname. (At least 1 character)");
       return;
     }
@@ -129,7 +143,6 @@ function GameCreateSteps({ setGameId }: Props) {
       (currentStep === 2 && selectedLikes.length < 1) ||
       (currentStep === 3 && selectedDislikes.length < 1)
     ) {
-      // console.log("Select at least 1 item");
       setErrorMessage("Select at least 1 item");
       return;
     }
@@ -164,7 +177,6 @@ function GameCreateSteps({ setGameId }: Props) {
         );
       } else {
         if (MAX_LIKES_COUNT === selectedLikes.length) {
-          // console.log("Cannot select more! Reached maximum selections");
           setErrorMessage(`You can select up to ${MAX_LIKES_COUNT} items.`);
           return;
         }
@@ -177,7 +189,6 @@ function GameCreateSteps({ setGameId }: Props) {
         );
       } else {
         if (MAX_DISLIKES_COUNT === selectedDislikes.length) {
-          // console.log("Cannot select more! Reached maximum selections");
           setErrorMessage(`You can select up to ${MAX_DISLIKES_COUNT} items.`);
           return;
         }
@@ -192,7 +203,6 @@ function GameCreateSteps({ setGameId }: Props) {
 
   const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNickname(e.target.value);
-    // console.log(e, "### input changed");
   };
 
   const isSelected = (key: ItemKey) => {
@@ -361,11 +371,11 @@ function GameCreateSteps({ setGameId }: Props) {
 }
 
 export default function NewGame({}: Props) {
-  const [gameId, setGameId] = useState<string | undefined>("2X1dWgwnao"); // initialised for testing
-  // const [gameId, setGameId] = useState<string | undefined>("");
+  // const [gameId, setGameId] = useState<string | undefined>("2X1dWgwnao"); // initialised for testing
+  const [gameId, setGameId] = useState<string | undefined>("");
 
   return (
-    <section className="flex flex-col justify-center gap-5 w-[500px] max-w-dvw h-auto p-5 mx-auto">
+    <section className="flex flex-col justify-center gap-5 w-125 max-w-dvw h-dvh overflow-y-scroll px-5 py-20 mx-auto">
       {gameId ? (
         <GameCreateSuccess uniqueId={gameId} />
       ) : (
