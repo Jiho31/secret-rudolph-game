@@ -11,6 +11,7 @@ function App() {
   const [gameId, setGameId] = useState("");
   const [gameData, setGameData] = useState<any>({});
   const [friendName, setFriendName] = useState("");
+  const [playerName, setPlayerName] = useState("Anonymous");
 
   //  References to the PhaserGame component (game and scene are exposed)
   const phaserRef = useRef<IRefPhaserGame | null>(null);
@@ -45,9 +46,20 @@ function App() {
     return JSON.parse(data);
   };
 
-  const start = () => {
-    // @todo handle invalid game data
+  const validatePlayerName = (name: string) => {
+    const regex = /^[\p{L}\p{N} _-]{1,20}$/u;
+    return regex.test(name.trim());
+  };
 
+  const start = () => {
+    if (!validatePlayerName(playerName)) {
+      alert(
+        "Invalid player name! Please type in 1-20 characters of letters, numbers, spaces, _ and -"
+      );
+      return;
+    }
+
+    // @todo handle invalid game data
     const likes = gameData.likes || [itemKeys.SNOWFLAKE];
     const dislikes = gameData.dislikes || ["bomb"];
 
@@ -73,13 +85,30 @@ function App() {
     <div id="app">
       {isVisible && (
         <div className="absolute w-full h-full z-10 bg-black/50 flex justify-center items-center">
-          <button
-            type="button"
-            className="w-fit h-fit bg-black p-5 border hover:bg-gray-800 hover:cursor-pointer"
-            onClick={start}
-          >
-            Click to Play
-          </button>
+          <div className="bg-white px-5 py-8 rounded-3xl flex flex-col gap-3 text-black w-[350px] h-fit">
+            <label htmlFor="playerName">What is your name?</label>
+            <input
+              type="text"
+              id="playerName"
+              name="playerName"
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
+              placeholder="Type in nickname (1-20 characters)"
+              maxLength={20}
+              className="p-3 bg-white border border-gray-300 rounded-xl"
+            />
+            <p className="text-sm">
+              This name will be saved and displayed on the scoreboard after you
+              play.
+            </p>
+            <button
+              type="button"
+              className="self-center mt-3 w-fit h-fit rounded-xl p-4 bg-green-700 hover:bg-green-800 text-white hover:cursor-pointer"
+              onClick={start}
+            >
+              Start Game
+            </button>
+          </div>
         </div>
       )}
       <PhaserGame
@@ -87,6 +116,7 @@ function App() {
         currentActiveScene={currentScene}
         gameId={gameId}
         friendName={friendName}
+        playerName={playerName}
       />
     </div>
   );
