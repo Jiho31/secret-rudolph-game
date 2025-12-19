@@ -1,28 +1,13 @@
-import Head from "next/head";
 import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
-import dynamic from "next/dynamic";
 import MainPage from "./main";
 
 const inter = Inter({ subsets: ["latin"] });
 
-// const AppWithoutSSR = dynamic(() => import("@/App"), { ssr: false });
-
 export default function Home() {
   return (
     <>
-      <Head>
-        <title>Rudolph's Present Game</title>
-        <meta
-          name="description"
-          content="Play Rudolph's Presents Game to find out what you're friends & families want for Christmas"
-        />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.png" />
-      </Head>
       <main className={`${styles.main} ${inter.className}`}>
-        {/* {router.query?.gameId ? <MainPage /> : <AppWithoutSSR />} */}
-        {/* <AppWithoutSSR /> */}
         <MainPage />
       </main>
     </>
