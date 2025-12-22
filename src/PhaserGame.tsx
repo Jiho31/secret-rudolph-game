@@ -105,28 +105,29 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(
       });
 
       game.current?.events.on("update-itemList", (data: any) => {
-        // console.log(data);
         setLikedItems(data);
       });
 
       game.current?.events.on("update-dislikes", (data: any) => {
-        // console.log(data);
         setDislikedItems(data);
       });
 
-      game.current?.events.on("game-over", (data: any) => {
+      game.current?.events.on("game-over", async (data: any) => {
         if (typeof data.score !== "number") {
           console.error("Failed to save game result.");
           return;
         }
-        // saveGameResult(data.score);
-        const newResult = {
-          gameCode: gameId,
-          data: { player: playerName, score: data.score },
-        };
-        // await 로 호출?
-        addGameResult(newResult);
-        setIsGameOver(true);
+        try {
+          const newResult = {
+            gameCode: gameId,
+            data: { player: playerName, score: data.score },
+          };
+          await addGameResult(newResult);
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setIsGameOver(true);
+        }
       });
 
       return () => {
