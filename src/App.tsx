@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { RudolphGame } from "./game/scenes/RudolphGame";
 import { MainMenu } from "./game/scenes/MainMenu";
 import { itemKeys } from "./game/items";
+import { fetchGame } from "./_utils/useFirestore";
 
 function App() {
   const router = useRouter();
@@ -17,7 +18,7 @@ function App() {
   const phaserRef = useRef<IRefPhaserGame | null>(null);
 
   useEffect(() => {
-    console.log(router.query.gameId);
+    // console.log(router.query.gameId);
     if (router.query.gameId && typeof router.query.gameId == "string") {
       setGameId(router.query.gameId);
     } else {
@@ -26,13 +27,22 @@ function App() {
   }, [router]);
 
   useEffect(() => {
-    const gameData = fetchGameData(gameId);
-    setGameData(gameData);
-    setFriendName(gameData.name || "Friend");
+    initGameSettings(gameId);
   }, [gameId]);
 
+  const initGameSettings = async (id: string) => {
+    try {
+      const data = await fetchGame(id);
+
+      setGameData(data);
+      setFriendName(data.name || "");
+    } catch (err) {
+      return {};
+    }
+  };
+
   // local storage
-  const fetchGameData = (gameId: string) => {
+  /* const fetchGameData = async (gameId: string) => {
     if (!gameId) {
       // @todo handle game id invalid error
       // throw new Error("game id is invalid");
@@ -44,7 +54,7 @@ function App() {
       return {};
     }
     return JSON.parse(data);
-  };
+  }; */
 
   const validatePlayerName = (name: string) => {
     const regex = /^[\p{L}\p{N} _-]{1,20}$/u;
@@ -61,7 +71,7 @@ function App() {
 
     // @todo handle invalid game data
     const likes = gameData.likes || [itemKeys.SNOWFLAKE];
-    const dislikes = gameData.dislikes || ["bomb"];
+    const dislikes = gameData.dislikes || [itemKeys.POO];
 
     if (phaserRef.current) {
       const scene = phaserRef.current.scene as RudolphGame;
@@ -84,16 +94,16 @@ function App() {
   return (
     <div id="app">
       {isVisible && (
-        <div className="absolute w-full h-full z-10 bg-black/50 flex justify-center items-center">
+        <div className="absolute w-full z-10 bg-black/50 flex justify-center items-center">
           <div className="bg-white px-5 py-8 rounded-3xl flex flex-col gap-3 text-black w-[350px] h-fit">
-            <label htmlFor="playerName">What is your name?</label>
+            <label htmlFor="playerName">Type in your name:</label>
             <input
               type="text"
               id="playerName"
               name="playerName"
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
-              placeholder="Type in nickname (1-20 characters)"
+              placeholder="Nickname (1-20 characters)"
               maxLength={20}
               className="p-3 bg-white border border-gray-300 rounded-xl"
             />

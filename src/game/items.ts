@@ -39,6 +39,7 @@ export const itemKeys = {
   VIDEO_GAME: "video_game",
   WINE: "wine",
   GIFT: "gift",
+  POO: "poo",
 } as const;
 
 export type ItemKey = (typeof itemKeys)[keyof typeof itemKeys];
@@ -95,7 +96,7 @@ export const items: Items = {
   },
   [itemKeys.CAROUSEL_HORSE]: {
     path: `${PATH}carousel-horse.svg`,
-    name: "amusement park",
+    name: "theme park",
   },
   [itemKeys.CAT]: {
     path: `${PATH}cat.svg`,
@@ -107,7 +108,7 @@ export const items: Items = {
   },
   [itemKeys.CLOVER]: {
     path: `${PATH}clover.svg`,
-    name: "clover",
+    name: "luck",
   },
   [itemKeys.DOG]: {
     path: `${PATH}dog.svg`,
@@ -167,7 +168,7 @@ export const items: Items = {
   },
   [itemKeys.TELEVISION]: {
     path: `${PATH}television.svg`,
-    name: "television",
+    name: "TV",
   },
   [itemKeys.VACATION]: {
     path: `${PATH}travel.svg`,
@@ -184,6 +185,10 @@ export const items: Items = {
   [itemKeys.GIFT]: {
     path: `${PATH}wrapped-gift.svg`,
     name: "gift",
+  },
+  [itemKeys.POO]: {
+    path: `${PATH}poo.svg`,
+    name: "poo",
   },
 };
 

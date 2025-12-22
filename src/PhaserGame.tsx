@@ -5,9 +5,14 @@ import {
   useRef,
   useState,
 } from "react";
+import Image from "next/image";
 import StartGame from "./game/main";
 import { EventBus } from "./game/EventBus";
 import { useRouter } from "next/router";
+import { ItemKey, items } from "./game/items";
+import Help from "@/components/icons/Help";
+import Instructions from "./components/Instructions";
+import { addGameResult } from "./_utils/useFirestore";
 
 export interface IRefPhaserGame {
   game: Phaser.Game | null;
@@ -27,13 +32,14 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(
     ref
   ) {
     const game = useRef<Phaser.Game | null>(null!);
-    const [likedItems, setLikedItems] = useState([]);
+    const [likedItems, setLikedItems] = useState<Partial<ItemKey>[]>([]);
     const [dislikedItems, setDislikedItems] = useState([]);
     const [isGameOver, setIsGameOver] = useState(false);
+    const [showInstructions, setShowInstructions] = useState(false);
 
     const router = useRouter();
 
-    const saveGameResult = (score: number) => {
+    /* const saveGameResult = (score: number) => {
       const data = localStorage.getItem(gameId);
       if (!data) {
         // invalid game!
@@ -49,10 +55,16 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(
         gameId,
         JSON.stringify({ ...parsed, result: newResult })
       );
-    };
+    }; */
 
     const handleRedirect = () => {
       router.push(`/results?gameId=${gameId}`);
+    };
+
+    const handleHelpClick = (e: React.MouseEvent<HTMLElement>) => {
+      e.stopPropagation();
+
+      setShowInstructions(false);
     };
 
     useLayoutEffect(() => {
@@ -93,22 +105,32 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(
       });
 
       game.current?.events.on("update-itemList", (data: any) => {
-        // console.log(data);
         setLikedItems(data);
       });
 
       game.current?.events.on("update-dislikes", (data: any) => {
-        // console.log(data);
         setDislikedItems(data);
       });
 
-      game.current?.events.on("game-over", (data: any) => {
+      game.current?.events.on("game-over", async (data: any) => {
         if (typeof data.score !== "number") {
           console.error("Failed to save game result.");
           return;
         }
-        saveGameResult(data.score);
-        setIsGameOver(true);
+        try {
+          if (!gameId) {
+            return;
+          }
+          const newResult = {
+            gameCode: gameId,
+            data: { player: playerName, score: data.score },
+          };
+          await addGameResult(newResult);
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setIsGameOver(true);
+        }
       });
 
       return () => {
@@ -118,14 +140,57 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(
     }, [currentActiveScene, ref]);
 
     return (
-      <div className="flex flex-col justify-center w-auto max-w-100 h-dvh mx-auto">
-        <p>Let's find out what {friendName} wants for Christmas!</p>
-        <div>💚 Likes: {likedItems.join(",")}</div>
-        <div>💔 Dislikes: {dislikedItems.join(",")}</div>
-        <div id="game-container"></div>
+      <div className="flex flex-col gap-1.5 w-auto max-w-100 mx-auto px-3 py-5 md:py-3">
+        <Instructions
+          showInstructions={showInstructions}
+          friendName={friendName}
+          handleHelpClick={handleHelpClick}
+        />
+        <button
+          type="button"
+          title="how to play"
+          id="help-button"
+          onClick={() => setShowInstructions(true)}
+          className="place-self-end cursor-pointer inline-flex gap-0.5 place-items-center bg-green-700 hover:bg-green-800 px-2 py-1 rounded-lg text-white text-sm"
+        >
+          <p aria-label="help-button">Help</p>
+          <Help />
+        </button>
+        {friendName.length == 0 && (
+          <p className="text-sm p-2 border border-white rounded-xl">
+            ⚠️ Failed to load game with game code '{gameId}'. This is a test
+            game.
+          </p>
+        )}
+        <p>
+          Let's find out what "{friendName || "unknown"}" wants for Christmas!
+        </p>
+        <div className="inline-flex gap-1.5">
+          💚 Likes:{" "}
+          {likedItems.map((itemKey: ItemKey) => (
+            <Image
+              src={items[itemKey].path}
+              width={24}
+              height={24}
+              alt={itemKey}
+            />
+          ))}
+        </div>
+        <div className="inline-flex gap-1.5">
+          💔 Dislikes:{" "}
+          {dislikedItems.map((itemKey: ItemKey) => (
+            <Image
+              src={items[itemKey].path}
+              width={24}
+              height={24}
+              alt={itemKey}
+            />
+          ))}
+        </div>
+        <div id="game-container" className="self-center"></div>
         {isGameOver && (
           <button
-            className="mt-3 p-2 rounded-xl bg-gray-200 hover:bg-green-200 text-green-700 cursor-pointer "
+            className="mt-3 p-2 rounded-xl bg-gray-200 hover:bg-green-200 text-green-700 font-semibold border-2 border-green-700 cursor-pointer"
             onClick={handleRedirect}
           >
             See Results
