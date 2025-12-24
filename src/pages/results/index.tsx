@@ -33,6 +33,8 @@ export default function ResultsPage({}: Props) {
 
   const init = async (id: string) => {
     setIsLoading(true);
+    setErrorMessage("");
+
     try {
       // const result: GameInformation = await fetchData(id);
       const results: any = await fetchGameWithResults(id);
@@ -43,9 +45,14 @@ export default function ResultsPage({}: Props) {
       if (!results?.name) {
         console.error("Failed to fetch data");
         setGameData(undefined);
+        setErrorMessage("Game not found. Please check your game code.");
+        return;
       }
       setGameData(results);
     } catch (err) {
+      console.error("Error fetching game results:", err);
+      setErrorMessage("Failed to load game results. Please try again.");
+      setGameData(undefined);
     } finally {
       setIsLoading(false);
     }
@@ -131,7 +138,15 @@ export default function ResultsPage({}: Props) {
   }
 
   if (isLoading) {
-    return <section> Loading results..</section>;
+    return (
+      <section className="flex flex-col justify-center items-center mx-auto w-full md:w-[50%] p-10 gap-5">
+        <div className="animate-pulse">
+          <div className="text-4xl">🎄</div>
+        </div>
+        <p className="text-lg">Loading results...</p>
+        <div className="text-sm text-gray-300">Please wait while we fetch the game data</div>
+      </section>
+    );
   }
 
   if (!gameData) {

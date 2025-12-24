@@ -135,6 +135,7 @@ function GameCreateSteps({ setGameId, setCreatedBy }: Props) {
   const [nickname, setNickname] = useState("");
 
   const [errorMessage, setErrorMessage] = useState("");
+  const [isCreatingGame, setIsCreatingGame] = useState(false);
 
   const handlePrevClick = () => {
     setCurrentStep((prev) => prev - 1);
@@ -170,6 +171,9 @@ function GameCreateSteps({ setGameId, setCreatedBy }: Props) {
   };
 
   const handleCreateGame = async () => {
+    setIsCreatingGame(true);
+    setErrorMessage("");
+
     try {
       const uniqueId = generateUniqueHash();
       const newGameData = {
@@ -187,6 +191,9 @@ function GameCreateSteps({ setGameId, setCreatedBy }: Props) {
       setCreatedBy(nickname);
     } catch (err) {
       console.error(err);
+      setErrorMessage("Failed to create game. Please try again.");
+    } finally {
+      setIsCreatingGame(false);
     }
   };
 
@@ -406,10 +413,11 @@ function GameCreateSteps({ setGameId, setCreatedBy }: Props) {
         </button>
 
         <button
-          className="flex-1/2 p-3 rounded-xl bg-green-700 hover:bg-green-800 hover:cursor-pointer"
+          className="flex-1/2 p-3 rounded-xl bg-green-700 hover:bg-green-800 hover:cursor-pointer disabled:cursor-not-allowed disabled:bg-green-900 disabled:opacity-50"
           onClick={handleNextClick}
+          disabled={isCreatingGame}
         >
-          {isLastStep ? "Create game" : "Next"}
+          {isCreatingGame ? "Creating..." : isLastStep ? "Create game" : "Next"}
         </button>
       </div>
     </>
